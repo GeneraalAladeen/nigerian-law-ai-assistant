@@ -6,13 +6,13 @@
     <title>Login - Nigerian Legal Assistant</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center">
-    <div class="bg-white rounded-2xl shadow-lg p-8 max-w-sm w-full text-center">
-        <h1 class="text-2xl font-bold text-green-800 mb-2">Nigerian Legal Assistant</h1>
-        <p class="text-gray-500 text-sm mb-8">Sign in to ask questions about Nigerian law</p>
+<body class="bg-gray-950 min-h-screen flex items-center justify-center">
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl shadow-xl p-8 max-w-sm w-full text-center">
+        <h1 class="text-2xl font-bold text-emerald-400 mb-2">Nigerian Legal Assistant</h1>
+        <p class="text-gray-400 text-sm mb-8">Sign in to ask questions about Nigerian law</p>
 
         <a href="{{ route('auth.google.redirect') }}"
-           class="inline-flex items-center justify-center gap-3 w-full bg-white border border-gray-300 rounded-lg px-6 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+           class="inline-flex items-center justify-center gap-3 w-full bg-gray-800 border border-gray-700 rounded-lg px-6 py-3 text-sm font-medium text-gray-200 hover:bg-gray-700 transition">
             <svg class="w-5 h-5" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
