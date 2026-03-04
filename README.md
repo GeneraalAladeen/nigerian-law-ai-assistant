@@ -1,59 +1,224 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Nigerian Legal Assistant
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+An AI-powered legal research assistant specialising in Nigerian law. Upload PDF documents (Acts, Regulations, Constitutions, Court Rules, etc.) and ask questions in plain language — the assistant retrieves relevant legal context and provides accurate, cited answers.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Features
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **AI Chat Interface** — Conversational chat powered by GPT-4o, grounded exclusively in uploaded legal documents
+- **Document Ingestion** — Upload PDF law documents; they are automatically chunked, embedded, and stored for semantic search
+- **Semantic Search (RAG)** — Uses vector similarity search (pgvector) to retrieve the most relevant legal passages before answering
+- **Conversation History** — Maintains multi-turn conversations per user, stored and resumable
+- **Admin Panel** — Filament-powered admin for managing law documents (upload, reprocess, delete)
+- **Google OAuth Login** — Users authenticate via Google
+- **Jurisdiction Support** — Federal, FCT, and all 36 Nigerian states
+- **Document Categories** — Acts, Regulations, Decrees, Constitutions, Court Rules, Criminal/Civil/Commercial/Family/Labour law, and more
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## Tech Stack
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+| Layer | Technology |
+|---|---|
+| Framework | Laravel 12 (PHP 8.4) |
+| AI / LLM | OpenAI GPT-4o via `laravel/ai` |
+| Embeddings | OpenAI `text-embedding-3-small` |
+| Vector Database | PostgreSQL 16 + pgvector |
+| Admin Panel | Filament v5 |
+| Frontend | Livewire v4 + Tailwind CSS v4 |
+| Queue / Cache | Redis |
+| PDF Parsing | smalot/pdfparser |
+| Auth | Laravel Socialite (Google OAuth) |
+| Asset Bundling | Vite |
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-## Laravel Sponsors
+## Requirements
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- PHP 8.4+
+- Composer
+- Node.js & npm
+- PostgreSQL 16 with the **pgvector** extension
+- Redis
+- An **OpenAI API key** (for GPT-4o and embeddings)
+- A **Google OAuth app** (Client ID + Secret) for authentication
 
-### Premium Partners
+---
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## Installation & Setup
 
-## Contributing
+### Option A — Docker (recommended)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+1. **Clone the repository**
 
-## Code of Conduct
+   ```bash
+   git clone <repo-url> nigerian-law-assistant
+   cd nigerian-law-assistant
+   ```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+2. **Copy and configure the environment file**
 
-## Security Vulnerabilities
+   ```bash
+   cp .env.example .env
+   ```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+   Open `.env` and fill in:
+
+   ```env
+   OPENAI_API_KEY=sk-...
+
+   GOOGLE_CLIENT_ID=your-google-client-id
+   GOOGLE_CLIENT_SECRET=your-google-client-secret
+   GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
+
+   # Docker data folder (created automatically)
+   DOCKER_CONFIG_FOLDER=~/.docker-config/nigerian-law-assistant
+   ```
+
+3. **Start the Docker stack**
+
+   ```bash
+   docker compose up -d
+   ```
+
+   This starts:
+   - `webserver` — Laravel app on port 8000
+   - `postgres` — PostgreSQL 16 with pgvector on port 5432
+   - `redis` — Redis on port 6379
+   - `queue` — Queue worker for PDF processing (`law-ingestion` queue)
+
+4. **Run setup inside the container**
+
+   ```bash
+   docker compose exec webserver composer run setup
+   ```
+
+   This installs PHP and Node dependencies, generates the app key, runs migrations, and builds frontend assets.
+
+5. **Create the first admin user**
+
+   ```bash
+   docker compose exec webserver php artisan make:filament-user
+   ```
+
+6. **Visit the app**
+
+   - Chat: [http://localhost:8000](http://localhost:8000)
+   - Admin: [http://localhost:8000/admin](http://localhost:8000/admin)
+
+---
+
+### Option B — Local (without Docker)
+
+1. **Clone and install dependencies**
+
+   ```bash
+   git clone <repo-url> nigerian-law-assistant
+   cd nigerian-law-assistant
+   composer install
+   npm install
+   ```
+
+2. **Configure environment**
+
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+
+   Update `.env` with your local database, Redis, and API credentials:
+
+   ```env
+   DB_CONNECTION=pgsql
+   DB_HOST=127.0.0.1
+   DB_PORT=5432
+   DB_DATABASE=nigerian_law
+   DB_USERNAME=your_db_user
+   DB_PASSWORD=your_db_password
+
+   REDIS_HOST=127.0.0.1
+
+   OPENAI_API_KEY=sk-...
+
+   GOOGLE_CLIENT_ID=your-google-client-id
+   GOOGLE_CLIENT_SECRET=your-google-client-secret
+   GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
+   ```
+
+3. **Enable pgvector on your PostgreSQL database**
+
+   ```sql
+   CREATE EXTENSION IF NOT EXISTS vector;
+   ```
+
+4. **Run migrations and build assets**
+
+   ```bash
+   php artisan migrate
+   npm run build
+   ```
+
+5. **Create an admin user**
+
+   ```bash
+   php artisan make:filament-user
+   ```
+
+6. **Start all services**
+
+   ```bash
+   composer run dev
+   ```
+
+   This concurrently runs the Laravel server, queue worker, log watcher, and Vite dev server.
+
+---
+
+## Using the Application
+
+### Uploading Law Documents (Admin)
+
+1. Log in to the admin panel at `/admin`
+2. Navigate to **Law Documents → New Document**
+3. Fill in the title, category, jurisdiction, source, and year
+4. Upload a PDF (max 50 MB)
+5. Save — the document is queued for processing automatically
+
+The queue worker extracts text from the PDF, splits it into chunks, generates vector embeddings via OpenAI, and stores them in PostgreSQL. Status updates from `pending → processing → completed` (or `failed`).
+
+You can **Reprocess** any document from the table actions if needed.
+
+### Chatting with the Assistant
+
+1. Log in via Google at `/login`
+2. Ask any question about Nigerian law in plain English
+3. The assistant searches the knowledge base semantically and answers with citations to the specific law and section
+4. Conversations are saved and listed in the sidebar — click any to resume
+
+---
+
+## Running Tests
+
+```bash
+php artisan test --compact
+```
+
+---
+
+## Development Commands
+
+| Command | Description |
+|---|---|
+| `composer run dev` | Start server, queue, logs, and Vite concurrently |
+| `composer run setup` | Full first-time setup (install, migrate, build) |
+| `npm run build` | Build production frontend assets |
+| `npm run dev` | Start Vite dev server with HMR |
+| `vendor/bin/pint` | Fix PHP code style |
+| `php artisan queue:listen --queue=law-ingestion,default` | Run queue worker manually |
+
+---
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+MIT
