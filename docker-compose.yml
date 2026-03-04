@@ -1,0 +1,51 @@
+services:
+    base_php: &base_php
+        build:
+            context: ./dockerfiles
+            dockerfile: php.dockerfile
+            args:
+                - UID=${UID:-1000}
+                - GID=${GID:-1000}
+        volumes:
+            - .:/var/www/html/project:delegated
+            - ${DOCKER_CONFIG_FOLDER}/composer-cache:/home/laravel/.composer
+            - ${DOCKER_CONFIG_FOLDER}/npm-cache:/home/laravel/.npm
+
+    postgres:
+        image: pgvector/pgvector:pg16
+        restart: unless-stopped
+        volumes:
+            - ${DOCKER_CONFIG_FOLDER}/postgres-data:/var/lib/postgresql/data
+        tty: true
+        ports:
+            - ${DOCKER_DB_PORT:-5432}:5432
+        environment:
+            POSTGRES_DB: ${DB_DATABASE:-nigerian_law}
+            POSTGRES_USER: ${DB_USERNAME:-laravel}
+            POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+            SERVICE_TAGS: dev
+            SERVICE_NAME: postgres
+
+    redis:
+        image: redis:7
+        restart: unless-stopped
+        ports:
+            - ${DOCKER_REDIS_PORT:-6379}:6379
+
+    webserver:
+        <<: *base_php
+        restart: unless-stopped
+        command: ["php", "artisan", "serve", "--host=0.0.0.0"]
+        ports:
+            - ${DOCKER_SERVER_PORT:-8000}:8000
+        depends_on:
+            - postgres
+            - redis
+
+    queue:
+        <<: *base_php
+        restart: unless-stopped
+        command: ["php", "artisan", "queue:listen", "--queue=law-ingestion,default"]
+        depends_on:
+            - postgres
+            - redis
