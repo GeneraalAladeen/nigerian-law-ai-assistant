@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Agents\NigerianLegalAgent;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Laravel\Ai\Streaming\Events\TextDelta;
 use Livewire\Component;
@@ -96,12 +97,26 @@ class ChatInterface extends Component
         }
 
         $fullText = '';
+        $stopKey = 'chat_stop_'.auth()->id();
+        $stopped = false;
+
+        Cache::forget($stopKey);
 
         foreach ($response as $event) {
+            if (Cache::get($stopKey)) {
+                Cache::forget($stopKey);
+                $stopped = true;
+                break;
+            }
+
             if ($event instanceof TextDelta) {
                 $fullText .= $event->delta;
                 $this->stream($event->delta)->to('streamed-response');
             }
+        }
+
+        if ($stopped) {
+            $this->stream('__stopped__')->to('streamed-response');
         }
 
         if (! $this->conversationId) {
